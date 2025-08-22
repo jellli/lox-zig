@@ -3,6 +3,7 @@ const Reader = std.Io.Reader;
 const Writer = std.Io.Writer;
 
 const Lox = struct {
+    var hadError = false;
     pub fn main(args: []const []const u8, reader: *Reader, writer: *Writer) !void {
         if (args.len > 1) {
             try writer.print("Usage: jlox [script]", .{});
@@ -18,14 +19,17 @@ const Lox = struct {
         const cwd = std.fs.cwd();
         const bytes = try cwd.readFile(path, &file_buffer);
         try run(bytes);
+        if (hadError) {
+            std.process.exit(65);
+        }
     }
+
     fn runPrompt(reader: *Reader, writer: *Writer) !void {
         try writer.print("> ", .{});
         try writer.flush();
         while (reader.takeDelimiterExclusive('\n')) |line| {
-            try writer.print("[out]: {s}\n[in]: ", .{line});
-            try writer.flush();
             try run(line);
+            hadError = false;
         } else |err| if (err != error.EndOfStream) {
             return err;
         }
@@ -41,6 +45,16 @@ const Lox = struct {
         //     System.out.println(token);
         //   }
         // }
+    }
+
+    fn @"error"(writer: *Writer, lineNumber: u32, message: []const u8) void {
+        report(writer, lineNumber, "", message);
+    }
+
+    fn report(writer: *Writer, lineNumber: u32, where: []const u8, message: []const u8) void {
+        try writer.print("[line {d}] Error{s}: {s}\n", .{ lineNumber, where, message });
+        writer.flush();
+        hadError = true;
     }
 };
 pub fn main() !void {
