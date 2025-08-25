@@ -2,7 +2,7 @@ const std = @import("std");
 const TokenType = @import("./Lox.zig").TokenType;
 
 // not impl
-const Object = struct {};
+pub const Object = union(enum) { null: bool };
 
 pub const Token = struct {
     type: TokenType,

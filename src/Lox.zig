@@ -96,12 +96,12 @@ fn run(_: []const u8) !void {
     // }
 }
 
-fn @"error"(writer: *Writer, lineNumber: u32, message: []const u8) void {
-    report(writer, lineNumber, "", message);
+pub fn @"error"(writer: *Writer, lineNumber: u32, message: []const u8) !void {
+    try report(writer, lineNumber, "", message);
 }
 
-fn report(writer: *Writer, lineNumber: u32, where: []const u8, message: []const u8) void {
+fn report(writer: *Writer, lineNumber: u32, where: []const u8, message: []const u8) !void {
     try writer.print("[line {d}] Error{s}: {s}\n", .{ lineNumber, where, message });
-    writer.flush();
+    try writer.flush();
     hadError = true;
 }
